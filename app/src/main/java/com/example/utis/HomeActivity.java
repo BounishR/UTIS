@@ -455,9 +455,6 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-
-
-
     private String getCurrentTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         return sdf.format(new Date());
