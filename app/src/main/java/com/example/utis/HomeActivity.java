@@ -49,7 +49,6 @@ public class HomeActivity extends AppCompatActivity {
     private   ImageView tempImageView;
 
 
-
     private static final String DATABASE_NAME = "my_transport_schedules.db";
     private static final String TABLE_NAME = "routes";
     private static final String COLUMN_ROUTE = "route";
@@ -329,8 +328,6 @@ public class HomeActivity extends AppCompatActivity {
             insertData(db, "T11 G", "VELLORE", "18:45:00", "A.K.PADAVEDU", "20:05:00");
             insertData(db, "T 3AA", "VELLORE", "05:20:00", "ADUKAMPARAI G.H.", "05:50:00");
             insertData(db, "T11 G", "VELLORE", "12:45:00", "ADUKAMPARAI G.H.", "13:15:00");
-
-
 
         } catch (SQLiteException e) {
             Log.e("DatabaseError", e.getMessage());

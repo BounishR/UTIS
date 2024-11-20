@@ -13,34 +13,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <Button
-        android:id="@+id/btn_detect_location"
-        android:layout_width="200dp"
-        android:layout_height="70dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="0dp"
-        android:text="@string/make_a_stop"
-        android:textSize="16sp"
-        app:iconSize="18dp" />
-
     <!-- Cancel Temporary Stop Button -->
-    <Button
-        android:id="@+id/btn_cancel_bus_stop"
-        android:layout_width="130dp"
-        android:layout_height="70dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="0dp"
-        android:text="@string/cancel"
-        android:textSize="16sp" />
 </RelativeLayout>

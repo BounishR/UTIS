@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+        }
+        #app {
+            text-align: center;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+        }
+        #currentLocation, #trackingPattern {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1.1em;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        #trackingPattern {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        h2 {
+            font-size: 1.5em;
+            color: #555;
+        }
+        #dateInput {
+            margin-top: 15px;
+            padding: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Live Location Tracker</h1>
+        <div id="currentLocation">Waiting for location data...</div>
+        <h2>Tracking Pattern</h2>
+        <input type="date" id="dateInput" onchange="showDataForDate()" />
+        <div id="trackingPattern">No tracking data available yet.</div>
+    </div>
+
+    <script>
+        const currentLocation = document.getElementById("currentLocation");
+        const trackingPattern = document.getElementById("trackingPattern");
+        const dateInput = document.getElementById("dateInput");
+        const apiKey = "YOUR_API_KEY"; // OpenCage API key
+
+        let lastRecordedPlace = null;
+        let lastRecordedTime = null;
+
+        // Start tracking immediately on load
+        window.onload = function() {
+            startTracking();
+        };
+
+        // Start tracking function
+        function startTracking() {
+            if (navigator.geolocation) {
+                updateCurrentLocation(); // Initial update
+                setInterval(updateCurrentLocation, 10 * 60 * 1000); // Update every 10 minutes
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Function to update the current location display with place name
+        function updateCurrentLocation() {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const timestamp = new Date();
+                    const formattedTime = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateKey = timestamp.toISOString().split("T")[0]; // YYYY-MM-DD format
+
+                    fetch(`https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const place = data.results[0].formatted; // Get the formatted address
+                            currentLocation.innerText = `Current Location (updated at ${formattedTime}):\n${place}`;
+                            recordLocation(dateKey, formattedTime, place); // Record location
+                        })
+                        .catch(error => {
+                            console.error("Error fetching place name:", error);
+                            currentLocation.innerText = `Current Location (updated at ${formattedTime}):\nLat: ${latitude}, Long: ${longitude} (Place name unavailable)`;
+                        });
+                },
+                function(error) {
+                    let errorMessage;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "Location access denied by user.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "Location information is unavailable.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "Location request timed out.";
+                            break;
+                        default:
+                            errorMessage = "An unknown error occurred.";
+                            break;
+                    }
+                    currentLocation.innerText = errorMessage + " (Error code: " + error.code + ")";
+                    console.error("Geolocation error details:", error);
+                }
+            );
+        }
+
+        // Record location based on time constraints
+        function recordLocation(dateKey, time, place) {
+            if (lastRecordedPlace !== place || (lastRecordedPlace === place && hoursDifference(lastRecordedTime, time) >= 5)) {
+                const locationEntry = `${time} - ${place}`;
+
+                // Retrieve or initialize data for the day
+                let dayData = JSON.parse(localStorage.getItem(dateKey)) || [];
+                dayData.push(locationEntry); // Add new entry
+
+                localStorage.setItem(dateKey, JSON.stringify(dayData)); // Store updated data
+
+                lastRecordedPlace = place;
+                lastRecordedTime = time;
+            }
+        }
+
+        // Show data for the selected date
+        function showDataForDate() {
+            const selectedDate = dateInput.value;
+            if (selectedDate) {
+                const dayData = JSON.parse(localStorage.getItem(selectedDate));
+
+                trackingPattern.innerHTML = "";
+                if (dayData && dayData.length > 0) {
+                    dayData.forEach(entry => {
+                        const div = document.createElement("div");
+                        div.innerText = entry;
+                        trackingPattern.appendChild(div);
+                    });
+                } else {
+                    trackingPattern.innerText = selectedDate > new Date().toISOString().split("T")[0]
+                        ? "YET TO TRAVEL"
+                        : "No travel data available for this date.";
+                }
+            }
+        }
+
+        // Calculate hours difference
+        function hoursDifference(lastTime, currentTime) {
+            if (!lastTime) return 0;
+            const [lastHours, lastMinutes] = lastTime.split(":").map(Number);
+            const [currentHours, currentMinutes] = currentTime.split(":").map(Number);
+            return Math.abs(currentHours - lastHours + (currentMinutes - lastMinutes) / 60);
+        }
+
+        // Automatically set date input to today
+        dateInput.value = new Date().toISOString().split("T")[0];
+        showDataForDate(); // Display data for today on page load
+    </script>
+</body>
+</html>

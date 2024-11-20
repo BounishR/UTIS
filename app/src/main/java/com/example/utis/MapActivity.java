@@ -19,3 +19,4 @@ public class MapActivity extends AppCompatActivity {
         webView.loadUrl("https://tomato-faydra-74.tiiny.site");
     }
 }
+
